@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script type="module">
+    // Set up the canvas with a 2D rendering context
+    const canvas = document.getElementById("canvas");
+    const boundingRect = canvas.getBoundingClientRect();
+    const ctx = canvas.getContext("2d");
+
+    // Compute the size of the viewport
+    const ratio  = window.devicePixelRatio || 1;
+    const width  = (boundingRect.width  | 0) * ratio;
+    const height = (boundingRect.height | 0) * ratio;
+    const size = width * height;
+
+    canvas.width  = width;
+    canvas.height = height;
+    ctx.scale(ratio, ratio);
+
+    import { random_create, update } from "./build/release.js";
+    let max_color_atoms = 100;
+    let color_count = 3; // red, green, blue
+    let u16_values_per_atom = 5; // x,y,v_x,v_y,color
+    let bytes_for_u16 = 2; // fixed u16 needs 2 bytes
+    let page_size = 64000; // fixed by assemblyscript (64kb)
+
+    // Initialize memory for atoms
+    console.log(Math.ceil((max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16) / page_size))
+    const memory = new WebAssembly.Memory({ initial: Math.ceil((max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16) / page_size)});
+    const u16array = new Uint16Array(memory.buffer);
+
+    // Initialize memory for image buffer
+    const imageData = ctx.createImageData(width, height);
+    const argb = new Uint32Array(imageData.data.buffer);
+    const colors = computeColors();
+
+    random_create(0, max_color_atoms, width, height);
+    random_create(1, max_color_atoms, width, height);
+    random_create(2, max_color_atoms, width, height);
+
+    // Translate 16-bit color indices to colors
+    for (let y = 0; y < height; ++y) {
+        const yx = y * width;
+        for (let x = 0; x < width; ++x) {
+            argb[yx + x] = colors[u16array[yx + x]];
+        }
+    }
+
+    // Render the image buffer.
+    ctx.putImageData(imageData, 0, 0);
+
+    function computeColors() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 2048;
+        canvas.height = 1;
+        const ctx = canvas.getContext("2d");
+        const grd = ctx.createLinearGradient(0, 0, 2048, 0);
+        grd.addColorStop(0.00, "#000764");
+        grd.addColorStop(0.16, "#2068CB");
+        grd.addColorStop(0.42, "#EDFFFF");
+        grd.addColorStop(0.6425, "#FFAA00");
+        grd.addColorStop(0.8575, "#000200");
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, 2048, 1);
+        return new Uint32Array(ctx.getImageData(0, 0, 2048, 1).data.buffer);
+    }
+</script>
+</head>
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+</body>
+</html>
