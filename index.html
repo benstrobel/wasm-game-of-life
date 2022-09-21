@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
 <script type="module">
+
+    function instantiate(bytes, imports) {
+        return WebAssembly.compile(bytes).then(m => new WebAssembly.Instance(m, imports));
+    }
+
     // Set up the canvas with a 2D rendering context
     const canvas = document.getElementById("canvas");
     const boundingRect = canvas.getBoundingClientRect();
@@ -17,26 +22,41 @@
     canvas.height = height;
     ctx.scale(ratio, ratio);
 
-    import { random_create, update } from "./build/release.js";
     let max_color_atoms = 100;
     let color_count = 3; // red, green, blue
     let u16_values_per_atom = 5; // x,y,v_x,v_y,color
     let bytes_for_u16 = 2; // fixed u16 needs 2 bytes
     let page_size = 64000; // fixed by assemblyscript (64kb)
 
+    const importObject = {
+        env: {
+            seed() {
+                // ~lib/builtins/seed() => f64
+                return (() => {
+                // @external.js
+                return Date.now() * Math.random();
+                })();
+            }
+        }
+    }
+
+    const exports = await fetch('./build/release.wasm').then(response => response.arrayBuffer())
+    .then(bytes => instantiate(bytes, importObject))
+    .then(instance => instance.exports);
+
     // Initialize memory for atoms
-    console.log(Math.ceil((max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16) / page_size))
-    const memory = new WebAssembly.Memory({ initial: Math.ceil((max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16) / page_size)});
-    const u16array = new Uint16Array(memory.buffer);
+    exports.memory.grow(Math.ceil((max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16) / page_size));
+    const u16array = new Uint16Array(exports.memory.buffer);
 
     // Initialize memory for image buffer
     const imageData = ctx.createImageData(width, height);
     const argb = new Uint32Array(imageData.data.buffer);
     const colors = computeColors();
 
-    random_create(0, max_color_atoms, width, height);
-    random_create(1, max_color_atoms, width, height);
-    random_create(2, max_color_atoms, width, height);
+    exports.random_create(0, max_color_atoms, u16_values_per_atom, width, height);
+    exports.random_create(1, max_color_atoms, u16_values_per_atom, width, height);
+    exports.random_create(2, max_color_atoms, u16_values_per_atom, width, height);
+    console.log(u16array)
 
     // Translate 16-bit color indices to colors
     for (let y = 0; y < height; ++y) {
