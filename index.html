@@ -26,6 +26,17 @@
         }
     }
 
+    function render_atom(imageData, width, atom_offset) {
+        const atom_x = u16array[atom_offset + 0];
+        const atom_y = u16array[atom_offset + 1];
+        const atom_color = u16array[atom_offset + 4];
+        const [r,g,b,a] = translateColor(atom_color);
+        imageData.data[width*atom_y*4 + atom_x*4 + 0] = r;
+        imageData.data[width*atom_y*4 + atom_x*4 + 1] = g;
+        imageData.data[width*atom_y*4 + atom_x*4 + 2] = b;
+        imageData.data[width*atom_y*4 + atom_x*4 + 3] = a;
+    }
+
     // Set up the canvas with a 2D rendering context
     const canvas = document.getElementById("canvas");
     const boundingRect = canvas.getBoundingClientRect();
@@ -66,50 +77,52 @@
     // Initialize memory
     const bytes_for_objects = Math.ceil((max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16))
     const bytes_for_image_buffer = width*height*bytes_for_u16;
-
     exports.memory.grow((bytes_for_objects + bytes_for_image_buffer) / page_size);
     const u16array = new Uint16Array(exports.memory.buffer);
 
-    // Initialize image data buffer
-    console.log("Imagedata width: " + width + " height " + height)
-    const imageData = ctx.createImageData(width, height);
-    // const colors = computeColors();
-
+    // Spawn random atoms
     exports.random_create(0, max_color_atoms, u16_values_per_atom, width, height);
     exports.random_create(1, max_color_atoms, u16_values_per_atom, width, height);
     exports.random_create(2, max_color_atoms, u16_values_per_atom, width, height);
+
+    console.time("Ticktotal")
+    console.time("Logictick")
+
     exports.update(max_color_atoms, u16_values_per_atom, width, height);
 
-    // Translate colors
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const [r,g,b,a] = translateColor(u16array[bytes_for_objects/bytes_for_u16 + y * width + x]);
-            imageData.data[width*y*4 + x*4 + 0] = r;
-            imageData.data[width*y*4 + x*4 + 1] = g;
-            imageData.data[width*y*4 + x*4 + 2] = b;
-            imageData.data[width*y*4 + x*4 + 3] = a;
-        }
+    console.timeEnd("Logictick")
+    console.time("Rendertick")
+
+    // Initialize image data buffer
+    const imageData = ctx.createImageData(width, height);
+
+    // Background
+    for(let i = 0; i < imageData.data.length; i += 4) {
+        imageData.data[i+0] = 0;
+        imageData.data[i+1] = 0;
+        imageData.data[i+2] = 0;
+        imageData.data[i+3] = 255;
     }
 
-    // Render the image buffer.
-    console.log(imageData)
+    // Render atoms
+    const color0_offset = 0;
+    const color1_offset = max_color_atoms * 1 * u16_values_per_atom;
+    const color2_offset = max_color_atoms * 2 * u16_values_per_atom;
+    for(let i = 0; i < max_color_atoms; i++) {
+        render_atom(imageData, width, color0_offset + i * u16_values_per_atom);
+    }
+    for(let i = 0; i < max_color_atoms; i++) {
+        render_atom(imageData, width, color1_offset + i * u16_values_per_atom);
+    }
+    for(let i = 0; i < max_color_atoms; i++) {
+        render_atom(imageData, width, color2_offset + i * u16_values_per_atom);
+    }
+
+    // Paint rendered image
     ctx.putImageData(imageData, 0, 0);
 
-    function computeColors() {
-        const canvas = document.createElement("canvas");
-        canvas.width = 2048;
-        canvas.height = 1;
-        const ctx = canvas.getContext("2d");
-        const grd = ctx.createLinearGradient(0, 0, 3, 0);
-        grd.addColorStop(0.00, "#000764");
-        grd.addColorStop(0.16, "#2068CB");
-        grd.addColorStop(0.42, "#EDFFFF");
-        grd.addColorStop(0.6425, "#FFAA00");
-        grd.addColorStop(0.8575, "#000200");
-        ctx.fillStyle = grd;
-        ctx.fillRect(0, 0, 2048, 1);
-        return new Uint32Array(ctx.getImageData(0, 0, 2048, 1).data.buffer);
-    }
+    console.timeEnd("Rendertick")
+    console.timeEnd("Ticktotal")
 </script>
 </head>
 <body>
