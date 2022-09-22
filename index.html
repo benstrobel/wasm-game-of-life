@@ -96,14 +96,6 @@
     // Initialize image data buffer
     const imageData = ctx.createImageData(width, height);
 
-    // Background
-    for(let i = 0; i < imageData.data.length; i += 4) {
-        imageData.data[i+0] = 0;
-        imageData.data[i+1] = 0;
-        imageData.data[i+2] = 0;
-        imageData.data[i+3] = 255;
-    }
-
     // Render atoms
     const color0_offset = 0;
     const color1_offset = max_color_atoms * 1 * u16_values_per_atom;
@@ -125,7 +117,7 @@
     console.timeEnd("Ticktotal")
 </script>
 </head>
-<body>
+<body bgcolor="#000000">
     <canvas id="canvas" width="500" height="500"></canvas>
 </body>
 </html>
