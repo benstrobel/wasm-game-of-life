@@ -7,6 +7,25 @@
         return WebAssembly.compile(bytes).then(m => new WebAssembly.Instance(m, imports));
     }
 
+    function translateColor(input) {
+        switch(input) {
+            case 0:
+                return [0,0,0,255];
+                break;
+            case 1:
+                return [255,0,0,255];
+                break;
+            case 2:
+                return [0,255,0,255];
+                break;
+            case 3:
+                return [0,0,255,255];
+                break;
+            default: 
+                return [0,0,0,0];
+        }
+    }
+
     // Set up the canvas with a 2D rendering context
     const canvas = document.getElementById("canvas");
     const boundingRect = canvas.getBoundingClientRect();
@@ -44,29 +63,36 @@
     .then(bytes => instantiate(bytes, importObject))
     .then(instance => instance.exports);
 
-    // Initialize memory for atoms
-    exports.memory.grow(Math.ceil((max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16) / page_size));
+    // Initialize memory
+    const bytes_for_objects = Math.ceil((max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16))
+    const bytes_for_image_buffer = width*height*bytes_for_u16;
+
+    exports.memory.grow((bytes_for_objects + bytes_for_image_buffer) / page_size);
     const u16array = new Uint16Array(exports.memory.buffer);
 
-    // Initialize memory for image buffer
+    // Initialize image data buffer
+    console.log("Imagedata width: " + width + " height " + height)
     const imageData = ctx.createImageData(width, height);
-    const argb = new Uint32Array(imageData.data.buffer);
-    const colors = computeColors();
+    // const colors = computeColors();
 
     exports.random_create(0, max_color_atoms, u16_values_per_atom, width, height);
     exports.random_create(1, max_color_atoms, u16_values_per_atom, width, height);
     exports.random_create(2, max_color_atoms, u16_values_per_atom, width, height);
-    console.log(u16array)
+    exports.update(max_color_atoms, u16_values_per_atom, width, height);
 
-    // Translate 16-bit color indices to colors
-    for (let y = 0; y < height; ++y) {
-        const yx = y * width;
-        for (let x = 0; x < width; ++x) {
-            argb[yx + x] = colors[u16array[yx + x]];
+    // Translate colors
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const [r,g,b,a] = translateColor(u16array[bytes_for_objects/bytes_for_u16 + y * width + x]);
+            imageData.data[width*y*4 + x*4 + 0] = r;
+            imageData.data[width*y*4 + x*4 + 1] = g;
+            imageData.data[width*y*4 + x*4 + 2] = b;
+            imageData.data[width*y*4 + x*4 + 3] = a;
         }
     }
 
     // Render the image buffer.
+    console.log(imageData)
     ctx.putImageData(imageData, 0, 0);
 
     function computeColors() {
@@ -74,7 +100,7 @@
         canvas.width = 2048;
         canvas.height = 1;
         const ctx = canvas.getContext("2d");
-        const grd = ctx.createLinearGradient(0, 0, 2048, 0);
+        const grd = ctx.createLinearGradient(0, 0, 3, 0);
         grd.addColorStop(0.00, "#000764");
         grd.addColorStop(0.16, "#2068CB");
         grd.addColorStop(0.42, "#EDFFFF");
