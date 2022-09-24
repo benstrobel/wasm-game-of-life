@@ -19,13 +19,14 @@
                 return [0,255,0,255];
                 break;
             case 3:
-                return [0,0,255,255];
+                return [255,255,255,255];
                 break;
             default: 
                 return [0,0,0,0];
         }
     }
 
+    // TODO Move to wasm & copy memory array to imageData
     function render_atom(imageData, width, atom_offset) {
         const atom_x = u16array[atom_offset + 0];
         const atom_y = u16array[atom_offset + 1];
@@ -70,14 +71,13 @@
         }
     }
 
-    const exports = await fetch('./build/release.wasm').then(response => response.arrayBuffer())
+    const exports = await fetch('./build/debug.wasm').then(response => response.arrayBuffer())
     .then(bytes => instantiate(bytes, importObject))
     .then(instance => instance.exports);
 
     // Initialize memory
-    const bytes_for_objects = Math.ceil((max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16))
-    const bytes_for_image_buffer = width*height*bytes_for_u16;
-    exports.memory.grow((bytes_for_objects + bytes_for_image_buffer) / page_size);
+    const bytes_for_objects = 2 * (max_color_atoms * color_count * u16_values_per_atom * bytes_for_u16)
+    exports.memory.grow(Math.ceil(bytes_for_objects / page_size));
     const u16array = new Uint16Array(exports.memory.buffer);
 
     // Spawn random atoms
@@ -85,36 +85,36 @@
     exports.random_create(1, max_color_atoms, u16_values_per_atom, width, height);
     exports.random_create(2, max_color_atoms, u16_values_per_atom, width, height);
 
-    console.time("Ticktotal")
-    console.time("Logictick")
+    let lastArrayObject = false;
 
-    exports.update(max_color_atoms, u16_values_per_atom, width, height);
+    while(true) {
+        const start = performance.now();
+        // console.time("Ticktotal")
+        // console.time("Logictick")
 
-    console.timeEnd("Logictick")
-    console.time("Rendertick")
+        exports.update(lastArrayObject ? 1500 : 0, lastArrayObject ? 0 : 1500, max_color_atoms, u16_values_per_atom, width, height);
 
-    // Initialize image data buffer
-    const imageData = ctx.createImageData(width, height);
+        // console.timeEnd("Logictick")
+        // console.time("Rendertick")
 
-    // Render atoms
-    const color0_offset = 0;
-    const color1_offset = max_color_atoms * 1 * u16_values_per_atom;
-    const color2_offset = max_color_atoms * 2 * u16_values_per_atom;
-    for(let i = 0; i < max_color_atoms; i++) {
-        render_atom(imageData, width, color0_offset + i * u16_values_per_atom);
+        // Initialize image data buffer
+        const imageData = ctx.createImageData(width, height);
+
+        // Render atoms
+        const color0_offset = lastArrayObject ? 0 : 1500;
+        for(let i = 0; i < 3*max_color_atoms; i++) {
+            render_atom(imageData, width, color0_offset + i * u16_values_per_atom);
+        }
+
+        // Paint rendered image
+        ctx.putImageData(imageData, 0, 0);
+
+        // console.timeEnd("Rendertick")
+        // console.timeEnd("Ticktotal")
+        const elapsed = performance.now() - start;
+        await new Promise(r => setTimeout(r, Math.max(12 - elapsed, 0)));
+        lastArrayObject = !lastArrayObject;
     }
-    for(let i = 0; i < max_color_atoms; i++) {
-        render_atom(imageData, width, color1_offset + i * u16_values_per_atom);
-    }
-    for(let i = 0; i < max_color_atoms; i++) {
-        render_atom(imageData, width, color2_offset + i * u16_values_per_atom);
-    }
-
-    // Paint rendered image
-    ctx.putImageData(imageData, 0, 0);
-
-    console.timeEnd("Rendertick")
-    console.timeEnd("Ticktotal")
 </script>
 </head>
 <body bgcolor="#000000">
