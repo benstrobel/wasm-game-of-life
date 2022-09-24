@@ -14,7 +14,7 @@ export function random_create(color: u16, max_color_atoms: u16, u16_values_per_a
     storeAtI16Index(color*(max_color_atoms*u16_values_per_atom) + a * u16_values_per_atom + 3, 0) // set v_y to 0
     storeAtU16Index(color*(max_color_atoms*u16_values_per_atom) + a * u16_values_per_atom + 4, color+1) // set color to given value + offset from default value
 
-    // storeAtU16Index(3*max_color_atoms*u16_values_per_atom + color*(max_color_atoms*u16_values_per_atom) + a * u16_values_per_atom + 4, color+1) // also set colors for future frame atom
+    storeAtU16Index(3*max_color_atoms*u16_values_per_atom + color*(max_color_atoms*u16_values_per_atom) + a * u16_values_per_atom + 4, color+1) // also set colors for future frame atom
   }
 }
 
@@ -30,7 +30,7 @@ function rule(colorIndex: u16, max_color_atoms: u16, max_x: u16, max_y: u16):voi
 
 export function update(object_array_offset_old: u16, object_array_offset_new: u16,max_color_atoms: u16, u16_values_per_atom: u16, max_x: u16, max_y: u16):void {
   const velocity_modifier: f32 = 0.5;
-  const distance_gravity_cutoff: f32 = 300;
+  const distance_gravity_cutoff: f32 = 200;
 
   for(let i = 0; i < 3*max_color_atoms; i++) {
     let fx: f32 = 0;
@@ -76,18 +76,19 @@ export function update(object_array_offset_old: u16, object_array_offset_new: u1
 }
 
 function modifier_mapper(color_0: u16, color_1: u16): f32 {
-  const red_to_red: f32 = 0.3;
-  const red_to_green: f32 = -0.1;
-  const red_to_white: f32 = -0.34;
+  const red_to_red: f32 = -0.22;
+  const red_to_green: f32 = -0.12;
+  const red_to_white: f32 = 0.73;
 
-  const green_to_green: f32 = 0.0;
-  const green_to_red: f32 = 0.0;
-  const green_to_white: f32 = 0.0;
+  const green_to_green: f32 = -0.93;
+  const green_to_red: f32 = 0.02;
+  const green_to_white: f32 = 0.16;
 
-  const white_to_white: f32 = 0.0;
-  const white_to_red: f32 = 0.0;
-  const white_to_green: f32 = 0.0;
+  const white_to_white: f32 = -0.66;
+  const white_to_red: f32 = 0.95;
+  const white_to_green: f32 = 0.9;
 
+  return 0;
   switch(true) {
     case ((color_0 == 0) && (color_1 == 0)):
       return red_to_red;
