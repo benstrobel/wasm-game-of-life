@@ -38,6 +38,10 @@
         imageData.data[width*atom_y*4 + atom_x*4 + 3] = a;
     }
 
+    function get_random_modifier() {
+        return Math.random() - 0.5;
+    }
+
     // Set up the canvas with a 2D rendering context
     const canvas = document.getElementById("canvas");
     const boundingRect = canvas.getBoundingClientRect();
@@ -53,7 +57,7 @@
     canvas.height = height;
     ctx.scale(ratio, ratio);
 
-    let max_color_atoms = 100;
+    let max_color_atoms = 250;
     let color_count = 3; // red, green, blue
     let u16_values_per_atom = 5; // x,y,v_x,v_y,color
     let bytes_for_u16 = 2; // fixed u16 needs 2 bytes
@@ -79,7 +83,7 @@
         }
     }
 
-    const exports = await fetch('./build/debug.wasm').then(response => response.arrayBuffer())
+    const exports = await fetch('./build/release.wasm').then(response => response.arrayBuffer())
     .then(bytes => instantiate(bytes, importObject))
     .then(instance => instance.exports);
 
@@ -93,14 +97,40 @@
     exports.random_create(1, max_color_atoms, u16_values_per_atom, width, height);
     exports.random_create(2, max_color_atoms, u16_values_per_atom, width, height);
 
+    // Choose random modifiers
+    const velocity_modifier = 0.5;
+    const distance_gravity_cutoff = 400;
+    const red_to_red = get_random_modifier();
+    const red_to_green = get_random_modifier();
+    const red_to_white = get_random_modifier();
+    const green_to_green = get_random_modifier();
+    const green_to_red = get_random_modifier();
+    const green_to_white = get_random_modifier();
+    const white_to_white = get_random_modifier();
+    const white_to_red = get_random_modifier();
+    const white_to_green = get_random_modifier();
+
     let lastArrayObject = false;
 
+    let test = true;
     while(true) {
         const start = performance.now();
         // console.time("Ticktotal")
         // console.time("Logictick")
 
-        exports.update(lastArrayObject ? 1500 : 0, lastArrayObject ? 0 : 1500, max_color_atoms, u16_values_per_atom, width, height);
+        exports.update(lastArrayObject ? 3*max_color_atoms : 0, lastArrayObject ? 0 : 3*max_color_atoms, max_color_atoms, u16_values_per_atom, width, height,
+            velocity_modifier,
+            distance_gravity_cutoff,
+            red_to_red,
+            red_to_green,
+            red_to_white,
+            green_to_green,
+            green_to_red,
+            green_to_white,
+            white_to_white,
+            white_to_red,
+            white_to_green
+        );
 
         // console.timeEnd("Logictick")
         // console.time("Rendertick")
@@ -109,7 +139,7 @@
         const imageData = ctx.createImageData(width, height);
 
         // Render atoms
-        const color0_offset = lastArrayObject ? 0 : 1500;
+        const color0_offset = lastArrayObject ? 0 : 3*max_color_atoms;
         for(let i = 0; i < 3*max_color_atoms; i++) {
             render_atom(imageData, width, color0_offset + i * u16_values_per_atom);
         }
@@ -122,6 +152,7 @@
         const elapsed = performance.now() - start;
         await new Promise(r => setTimeout(r, Math.max(12 - elapsed, 0)));
         lastArrayObject = !lastArrayObject;
+        test = false;
     }
 </script>
 </head>

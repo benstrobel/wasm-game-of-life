@@ -28,9 +28,19 @@ function rule(colorIndex: u16, max_color_atoms: u16, max_x: u16, max_y: u16):voi
   // TODO Implement
 }
 
-export function update(object_array_offset_old: u16, object_array_offset_new: u16,max_color_atoms: u16, u16_values_per_atom: u16, max_x: u16, max_y: u16):void {
-  const velocity_modifier: f32 = 0.1;
-  const distance_gravity_cutoff: f32 = 400;
+export function update(object_array_offset_old: u16, object_array_offset_new: u16,max_color_atoms: u16, u16_values_per_atom: u16, max_x: u16, max_y: u16,
+  velocity_modifier: f32,
+  distance_gravity_cutoff: f32,
+  red_to_red: f32,
+  red_to_green: f32,
+  red_to_white: f32,
+  green_to_green: f32,
+  green_to_red: f32,
+  green_to_white: f32,
+  white_to_white: f32,
+  white_to_red: f32,
+  white_to_green: f32,
+  ):void {
 
   for(let i = 0; i < 3*max_color_atoms; i++) {
     let fx: f32 = 0;
@@ -49,7 +59,16 @@ export function update(object_array_offset_old: u16, object_array_offset_new: u1
       const dy = a_old_y - b_old_y;
       const d: f32 = Math.sqrt(dx*dx + dy*dy) as f32;
       if(d > 0 && d < distance_gravity_cutoff) {
-        const F = modifier_mapper(a_color, b_color) * 1.0/d;
+        const F = modifier_mapper(a_color, b_color,
+          red_to_red,
+          red_to_green,
+          red_to_white,
+          green_to_green,
+          green_to_red,
+          green_to_white,
+          white_to_white,
+          white_to_red,
+          white_to_green) * 1.0/d;
         fx += (F*dx);
         fy += (F*dy);
       }
@@ -73,18 +92,17 @@ export function update(object_array_offset_old: u16, object_array_offset_new: u1
   }
 }
 
-function modifier_mapper(color_0: u16, color_1: u16): f32 {
-  const red_to_red: f32 = -0.22;
-  const red_to_green: f32 = -0.12;
-  const red_to_white: f32 = 0.73;
-
-  const green_to_green: f32 = -0.93;
-  const green_to_red: f32 = 0.02;
-  const green_to_white: f32 = 0.16;
-
-  const white_to_white: f32 = -0.66;
-  const white_to_red: f32 = 0.95;
-  const white_to_green: f32 = 0.9;
+function modifier_mapper(color_0: u16, color_1: u16,
+  red_to_red: f32,
+  red_to_green: f32,
+  red_to_white: f32,
+  green_to_green: f32,
+  green_to_red: f32,
+  green_to_white: f32,
+  white_to_white: f32,
+  white_to_red: f32,
+  white_to_green: f32
+  ): f32 {
 
   switch(true) {
     case ((color_0 == 1) && (color_1 == 1)):
@@ -112,6 +130,10 @@ function modifier_mapper(color_0: u16, color_1: u16): f32 {
 
 function get_random_in_range(max_value_exclusive: u16): u16 {
   return Math.floor((Math.random() * (max_value_exclusive as f64)) - 0.000001) as u16;
+}
+
+function get_random_modifier(): f32 {
+  return Math.random() - 0.5 as f32;
 }
 
 function storeAtU16Index(index: u32, value: u16):void {
