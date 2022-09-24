@@ -4,7 +4,7 @@
 <script type="module">
 
     function instantiate(bytes, imports) {
-        return WebAssembly.compile(bytes).then(m => new WebAssembly.Instance(m, imports));
+        return WebAssembly.compile(bytes).then(m => WebAssembly.instantiate(m, imports));
     }
 
     function translateColor(input) {
@@ -67,7 +67,15 @@
                 // @external.js
                 return Date.now() * Math.random();
                 })();
-            }
+            },
+            abort(msg, file, line, column) {
+				console.log(
+					`msg: ${(msg && msg) || msg}\n`,
+					`file: ${(file && file) || file}\n`,
+					`line: ${line}\n`,
+					`col: ${column}\n`
+				)
+			},
         }
     }
 

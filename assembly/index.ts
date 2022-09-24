@@ -29,8 +29,8 @@ function rule(colorIndex: u16, max_color_atoms: u16, max_x: u16, max_y: u16):voi
 }
 
 export function update(object_array_offset_old: u16, object_array_offset_new: u16,max_color_atoms: u16, u16_values_per_atom: u16, max_x: u16, max_y: u16):void {
-  const velocity_modifier: f32 = 0.5;
-  const distance_gravity_cutoff: f32 = 200;
+  const velocity_modifier: f32 = 0.1;
+  const distance_gravity_cutoff: f32 = 400;
 
   for(let i = 0; i < 3*max_color_atoms; i++) {
     let fx: f32 = 0;
@@ -44,8 +44,6 @@ export function update(object_array_offset_old: u16, object_array_offset_new: u1
     for(let j = 0; j < 3*max_color_atoms; j++) {
       const b_old_x = readFromI16Index(object_array_offset_old + j * u16_values_per_atom + 0);
       const b_old_y = readFromI16Index(object_array_offset_old + j * u16_values_per_atom + 1);
-      // const b_old_v_x = readFromI16Index(object_array_offset_old + j * u16_values_per_atom + 2);
-      // const b_old_v_y = readFromI16Index(object_array_offset_old + j * u16_values_per_atom + 3);
       const b_color = readFromU16Index(object_array_offset_old + j * u16_values_per_atom + 4);
       const dx = a_old_x - b_old_x;
       const dy = a_old_y - b_old_y;
@@ -88,25 +86,24 @@ function modifier_mapper(color_0: u16, color_1: u16): f32 {
   const white_to_red: f32 = 0.95;
   const white_to_green: f32 = 0.9;
 
-  return 0;
   switch(true) {
-    case ((color_0 == 0) && (color_1 == 0)):
-      return red_to_red;
-    case ((color_0 == 0) && (color_1 == 1)):
-      return red_to_green;
-    case ((color_0 == 0) && (color_1 == 2)):
-      return red_to_white;
-    case ((color_0 == 1) && (color_1 == 0)):
-      return green_to_red;
     case ((color_0 == 1) && (color_1 == 1)):
-      return green_to_green;
+      return red_to_red;
     case ((color_0 == 1) && (color_1 == 2)):
-      return green_to_white;
-    case ((color_0 == 2) && (color_1 == 0)):
-      return white_to_red;
+      return red_to_green;
+    case ((color_0 == 1) && (color_1 == 3)):
+      return red_to_white;
     case ((color_0 == 2) && (color_1 == 1)):
-      return white_to_green;
+      return green_to_red;
     case ((color_0 == 2) && (color_1 == 2)):
+      return green_to_green;
+    case ((color_0 == 2) && (color_1 == 3)):
+      return green_to_white;
+    case ((color_0 == 3) && (color_1 == 1)):
+      return white_to_red;
+    case ((color_0 == 3) && (color_1 == 2)):
+      return white_to_green;
+    case ((color_0 == 3) && (color_1 == 3)):
       return white_to_white;
     default:
       return 0.0;
