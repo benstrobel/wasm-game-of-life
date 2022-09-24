@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="stylesheet" type="text/css" href="index.css">
 <script type="module">
 
     function instantiate(bytes, imports) {
@@ -40,6 +41,28 @@
 
     function get_random_modifier() {
         return Math.random() - 0.5;
+    }
+
+    function setup_slider_w_value(slider_id, initial_value) {
+        let slider = document.getElementById(slider_id);
+        slider.value = initial_value;
+        slider.nextElementSibling.value = slider.value;
+        slider.addEventListener("input", slider_value_changed);
+    }
+
+    function setup_slider(slider_id) {
+        let slider = document.getElementById(slider_id);
+        slider.value = get_random_modifier();
+        slider.nextElementSibling.value = slider.value;
+        slider.addEventListener("input", slider_value_changed);
+    }
+
+    function slider_value_changed(slider_element) {
+        slider_element.target.nextElementSibling.value = slider_element.target.value;
+    }
+
+    function get_slider_value(slider_id) {
+        return document.getElementById(slider_id).value;
     }
 
     // Set up the canvas with a 2D rendering context
@@ -110,6 +133,20 @@
     const white_to_red = get_random_modifier();
     const white_to_green = get_random_modifier();
 
+
+    // Setup sliders
+    setup_slider_w_value("velocity_modifier", 0.5);
+    setup_slider_w_value("distance_gravity_cutoff", 400);
+    setup_slider("red_to_red");
+    setup_slider("red_to_green");
+    setup_slider("red_to_white");
+    setup_slider("green_to_green");
+    setup_slider("green_to_red");
+    setup_slider("green_to_white");
+    setup_slider("white_to_white");
+    setup_slider("white_to_red");
+    setup_slider("white_to_green");
+
     let lastArrayObject = false;
 
     let test = true;
@@ -119,17 +156,17 @@
         // console.time("Logictick")
 
         exports.update(lastArrayObject ? 3*max_color_atoms : 0, lastArrayObject ? 0 : 3*max_color_atoms, max_color_atoms, u16_values_per_atom, width, height,
-            velocity_modifier,
-            distance_gravity_cutoff,
-            red_to_red,
-            red_to_green,
-            red_to_white,
-            green_to_green,
-            green_to_red,
-            green_to_white,
-            white_to_white,
-            white_to_red,
-            white_to_green
+            get_slider_value("velocity_modifier"),
+            get_slider_value("distance_gravity_cutoff"),
+            get_slider_value("red_to_red"),
+            get_slider_value("red_to_green"),
+            get_slider_value("red_to_white"),
+            get_slider_value("green_to_green"),
+            get_slider_value("green_to_red"),
+            get_slider_value("green_to_white"),
+            get_slider_value("white_to_white"),
+            get_slider_value("white_to_red"),
+            get_slider_value("white_to_green")
         );
 
         // console.timeEnd("Logictick")
@@ -157,6 +194,71 @@
 </script>
 </head>
 <body bgcolor="#000000">
-    <canvas id="canvas" width="500" height="500"></canvas>
+    <div class="middle">
+        <h1>Busy Particle Game of Life</h1>
+        <h3>By Ben Strobel</h3>
+        <canvas class="canvas" id="canvas" width="500" height="500"></canvas>
+        <div class="horizontal">
+            <div class="slidecontainer">
+                <div class="horizontal">
+                    <p class="modifier_description">velocity_modifier</p>
+                    <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="velocity_modifier">
+                    <output>0</output>
+                </div>
+                <div class="horizontal">
+                    <p class="modifier_description">distance_cutoff</p>
+                    <input type="range" min="1" max="5000" value="400" step="1" class="slider" id="distance_gravity_cutoff">
+                    <output>0</output>
+                </div>
+                <div class="horizontal">
+                    <p class="modifier_description">red_to_red</p>
+                    <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider" id="red_to_red">
+                    <output>0</output>
+                </div>
+                <div class="horizontal">
+                    <p class="modifier_description">red_to_green</p>
+                    <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider" id="red_to_green">
+                    <output>0</output>
+                </div>
+                <div class="horizontal">
+                    <p class="modifier_description">red_to_white</p>
+                    <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider" id="red_to_white">
+                    <output>0</output>
+                </div>
+            </div>
+            <div class="slidecontainer">
+                <div class="horizontal">
+                    <p class="modifier_description">green_to_green</p>
+                    <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider"id="green_to_green">
+                    <output>0</output>
+                </div>
+                <div class="horizontal">
+                    <p class="modifier_description">green_to_red</p>
+                    <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider" id="green_to_red">
+                    <output>0</output>
+                </div>
+                <div class="horizontal">
+                    <p class="modifier_description">green_to_white</p>
+                    <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider" id="green_to_white">
+                    <output>0</output>
+                </div>
+                <div class="horizontal">
+                    <p class="modifier_description">white_to_white</p>
+                    <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider" id="white_to_white">
+                    <output>0</output>
+                </div>
+                <div class="horizontal">
+                    <p class="modifier_description">white_to_red</p>
+                    <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider" id="white_to_red">
+                    <output>0</output>
+                </div>
+                <div class="horizontal">
+                    <p class="modifier_description">white_to_green</p>
+                    <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider" id="white_to_green">
+                    <output>0</output>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -1,0 +1,53 @@
+.middle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.canvas {
+    width: 33%;
+    border: 2px solid white;
+}
+
+.slidecontainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 1vw;
+    margin-right: 1vw;
+}
+
+.slider {
+    margin: 8px;
+}
+
+.horizontal {
+    display: flex;
+    flex-direction: row;
+}
+
+.modifier_description {
+    width: 10vw;
+}
+
+h1 {
+    color: white;
+}
+
+h3 {
+    color: white;
+}
+
+p {
+    color: white;
+}
+
+output {
+    width: 2vw;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
