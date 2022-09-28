@@ -4,6 +4,10 @@
 // WASM Assemblyscript 1. Example: https://www.assemblyscript.org/examples/mandelbrot.html
 // WASM Assemblyscript 2. Example: https://www.assemblyscript.org/examples/game-of-life.html
 
+// TODOs:
+// - Organize elements into Binary Space Trees to be able to only compare elements near each other
+// - Use multithreading to calculate updates for multiple atoms concurrently 
+
 const base_color: u16 = 0;
 
 export function random_create(color: u16, max_color_atoms: u16, u16_values_per_atom: u16, max_x: u16, max_y: u16):void {

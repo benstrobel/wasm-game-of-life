@@ -51,3 +51,8 @@ output {
     justify-content: center;
     align-items: center;
 }
+
+.rand_button {
+    margin: 8px;
+    text-align: center;
+}

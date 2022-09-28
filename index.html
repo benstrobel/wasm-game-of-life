@@ -51,10 +51,11 @@
     }
 
     function setup_slider(slider_id) {
-        let slider = document.getElementById(slider_id);
-        slider.value = get_random_modifier();
-        slider.nextElementSibling.value = slider.value;
-        slider.addEventListener("input", slider_value_changed);
+        setup_slider_w_value(slider_id, get_random_modifier());
+    }
+
+    function setup_slider_in_range(slider_id, min, max) {
+        setup_slider_w_value(slider_id, Math.random()*(max-min)+min);
     }
 
     function slider_value_changed(slider_element) {
@@ -63,6 +64,31 @@
 
     function get_slider_value(slider_id) {
         return document.getElementById(slider_id).value;
+    }
+
+    function setup() {
+        setup_slider_in_range("velocity_modifier", 0.1, 1);
+        setup_slider_in_range("distance_gravity_cutoff", 5, 5000);
+        setup_slider("red_to_red");
+        setup_slider("red_to_green");
+        setup_slider("red_to_white");
+        setup_slider("green_to_green");
+        setup_slider("green_to_red");
+        setup_slider("green_to_white");
+        setup_slider("white_to_white");
+        setup_slider("white_to_red");
+        setup_slider("white_to_green");
+    }
+
+    function create_random_atoms() {
+        exports.random_create(0, max_color_atoms, u16_values_per_atom, width, height);
+        exports.random_create(1, max_color_atoms, u16_values_per_atom, width, height);
+        exports.random_create(2, max_color_atoms, u16_values_per_atom, width, height);
+    }
+
+    function reset_randomize() {
+        create_random_atoms();
+        setup();
     }
 
     // Set up the canvas with a 2D rendering context
@@ -116,9 +142,7 @@
     const u16array = new Uint16Array(exports.memory.buffer);
 
     // Spawn random atoms
-    exports.random_create(0, max_color_atoms, u16_values_per_atom, width, height);
-    exports.random_create(1, max_color_atoms, u16_values_per_atom, width, height);
-    exports.random_create(2, max_color_atoms, u16_values_per_atom, width, height);
+    create_random_atoms();
 
     // Choose random modifiers
     const velocity_modifier = 0.5;
@@ -135,17 +159,8 @@
 
 
     // Setup sliders
-    setup_slider_w_value("velocity_modifier", 0.5);
-    setup_slider_w_value("distance_gravity_cutoff", 400);
-    setup_slider("red_to_red");
-    setup_slider("red_to_green");
-    setup_slider("red_to_white");
-    setup_slider("green_to_green");
-    setup_slider("green_to_red");
-    setup_slider("green_to_white");
-    setup_slider("white_to_white");
-    setup_slider("white_to_red");
-    setup_slider("white_to_green");
+    setup();
+    document.getElementById("reset_randomize_button").addEventListener("click", reset_randomize);
 
     let lastArrayObject = false;
 
@@ -224,6 +239,9 @@
                     <p class="modifier_description">red_to_white</p>
                     <input type="range" min="-1" max="1" value="0.5" step="0.01" class="slider" id="red_to_white">
                     <output>0</output>
+                </div>
+                <div class="rand_button">
+                    <button id="reset_randomize_button">Reset & Randomize</button>
                 </div>
             </div>
             <div class="slidecontainer">
