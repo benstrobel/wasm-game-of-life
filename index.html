@@ -163,6 +163,9 @@
     document.getElementById("reset_randomize_button").addEventListener("click", reset_randomize);
 
     let lastArrayObject = false;
+    let lastTickTimes = [];
+    const tickTimesCount = 10;
+    let lastUpdatedTickTime = 0;
 
     let test = true;
     while(true) {
@@ -202,6 +205,17 @@
         // console.timeEnd("Rendertick")
         // console.timeEnd("Ticktotal")
         const elapsed = performance.now() - start;
+
+        // Update FrameTime
+        lastTickTimes[lastUpdatedTickTime] = elapsed;
+        lastUpdatedTickTime++;
+        if(lastUpdatedTickTime == tickTimesCount) {
+            lastUpdatedTickTime = 0;
+            const avg_elapsed = (lastTickTimes[0] + lastTickTimes[1] + lastTickTimes[2] + lastTickTimes[3] + lastTickTimes[4] + lastTickTimes[5] + lastTickTimes[6] + lastTickTimes[7] + lastTickTimes[8] + lastTickTimes[9]) / 10;
+            document.getElementById("MSPF").value = Math.round(avg_elapsed * 100) / 100;
+        }
+
+        // Sleep until next frame
         await new Promise(r => setTimeout(r, Math.max(12 - elapsed, 0)));
         lastArrayObject = !lastArrayObject;
         test = false;
@@ -213,6 +227,10 @@
         <h1>Busy Particle Game of Life</h1>
         <h3>By Ben Strobel</h3>
         <canvas class="canvas" id="canvas" width="500" height="500"></canvas>
+        <div class="horizontal">
+            <p>Ms per frame: </p>
+            <output class="MSPF" id="MSPF">0</output>
+        </div>
         <div class="horizontal">
             <div class="slidecontainer">
                 <div class="horizontal">
