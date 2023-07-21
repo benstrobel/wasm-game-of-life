@@ -2,7 +2,7 @@
 
 ## Demo
 
-https://home.in.tum.de/~strobben/game_of_life.html
+[https://home.in.tum.de/~strobben/game_of_life.html](https://benstrobel.de/wasm-gol)
 
 ## TODO's
 - Organize elements into Binary Space Trees to be able to only compare elements near each other
